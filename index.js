@@ -21,6 +21,7 @@ async function run() {
     try {
         const postCollection = client.db("connectVerse").collection("posts");
         const commentCollection = client.db("connectVerse").collection("comments");
+        const aboutCollection = client.db("connectVerse").collection("about");
 
         app.post('/posts', async (req, res) => {
             const post = req.body;
@@ -77,6 +78,17 @@ async function run() {
             const query = {}
             const comments = await commentCollection.find(query).toArray();
             res.send(comments);
+        })
+
+        app.get("/topComments", async (req, res) => {
+            const posts = await postCollection.find({}).limit(3).sort({ "likes": -1 }).toArray();
+            res.send(posts)
+        })
+
+        app.post("/about", async (req, res) => {
+            const about = req.body;
+            const result = await aboutCollection.insertOne(about);
+            res.send(result)
         })
     }
     finally {
