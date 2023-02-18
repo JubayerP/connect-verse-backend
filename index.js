@@ -44,38 +44,26 @@ async function run() {
             const userId = req.body.userId;
             const postId = req.params.postId;
 
+            const post = await postCollection.findOne({ _id: new ObjectId(postId) })
 
-            postCollection.findOne({ _id: new ObjectId(postId) }, (err, post) => {
-                if (err) {
-                    res.status(500).send(err);
-                    return;
-                }
+            // like check
 
-                // chk if post already liked
-                const alreadyLiked = post.likes.find((like) => like.userId === userId);
-
-                if (alreadyLiked) {
-                    postCollection.updateOne({ _id: new ObjectId(postId) }, { $pull: { likes: { userId: userId } } }, (err) => {
-                        if (err) {
-                            res.status(500).send(err)
-                        } else {
-                            res.status(200).send('Post unliked');
-                        }
-                    })
-                } else {
-                    // like post
-                    const like = { userId: userId, postId: postId }
-
-                    postCollection.updateOne({ _id: new ObjectId(postId) }, { $push: { likes: like } }, (err) => {
-                        if (err) {
-                            res.status(500).send(err);
-                        }
-                        else {
-                            res.status(200).send('Post liked');
-                        }
-                    })
-                }
-            })
+            const alreadyLiked = post.likes.find((like) => like.userId === userId)
+            if (alreadyLiked) {
+                await postCollection.updateOne({ _id: new ObjectId(postId) }, { $pull: { likes: { userId: userId } } }, err => {
+                    if (err) {
+                        res.status(500).send(err)
+                    } else {
+                        res.status(200).send('Post unliked');
+                    }
+                })
+            }
+            else {
+                const like = { userId: userId, postId: postId }
+                
+                const liked = await postCollection.updateOne({ _id: new ObjectId(postId) }, { $push: { likes: like } })
+                res.send(liked)
+            }
         })
     }
     finally {
