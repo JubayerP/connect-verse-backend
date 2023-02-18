@@ -20,6 +20,7 @@ const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology:
 async function run() {
     try {
         const postCollection = client.db("connectVerse").collection("posts");
+        const commentCollection = client.db("connectVerse").collection("comments");
 
         app.post('/posts', async (req, res) => {
             const post = req.body;
@@ -64,6 +65,18 @@ async function run() {
                 const liked = await postCollection.updateOne({ _id: new ObjectId(postId) }, { $push: { likes: like } })
                 res.send(liked)
             }
+        })
+
+        app.post("/comments", async (req, res) => {
+            const comment = req.body;
+            const result = await commentCollection.insertOne(comment)
+            res.send(result);
+        })
+
+        app.get("/comments", async (req, res) => {
+            const query = {}
+            const comments = await commentCollection.find(query).toArray();
+            res.send(comments);
         })
     }
     finally {
