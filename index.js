@@ -90,6 +90,12 @@ async function run() {
             const result = await aboutCollection.insertOne(about);
             res.send(result)
         })
+
+        app.get("/about", async (req, res) => {
+            const email = req.query.email;
+            const about = await aboutCollection.findOne({email: email});
+            res.send(about);
+        })
     }
     finally {
 
